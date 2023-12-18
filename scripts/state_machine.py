@@ -135,7 +135,8 @@ class WaitForTopMap(State):
                 self._interface.set_map()
 
                 # send the starting robot position to the robot state node.
-                start_pos = Location(self._interface._init_pos)
+                start_pos = Location()
+                start_pos = self._interface._init_pos
                 service = rospy.ServiceProxy(anm.SERVER_SET_POSE, NewPosition)
                 service(start_pos)  # The `response` is not used.
 

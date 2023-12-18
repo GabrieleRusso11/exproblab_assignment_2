@@ -725,7 +725,8 @@ class Handler:
         print()
 
         self._init_pos.name = self.loc[choice - 1]
-        self._init_pos.x, self._init_pos.y = self.ask_loc_coord(self.loc[choice - 1])
+        self._init_pos.x = 0.0 # it is not important, robot state doesn't handle the loc coordinates
+        self._init_pos.y = 0.0 # it is not important,robot state doesn't handle the loc coordinates
 
         self._client.manipulation.add_objectprop_to_ind(self.rob_prop, self.rob, str(self.loc[choice - 1]))
 
