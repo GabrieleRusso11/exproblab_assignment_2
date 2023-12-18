@@ -92,9 +92,6 @@
   <param name = "coord_y_property"        type = "str"           value = "Coordinate_Y"          />
 
   <param name = "robot_name"              type = "str"           value = "Robot1"                />
-  <param name = "waiting_time"            type = "int"           value = "10"                    />
-  <param name = "planning_time"           type = "int"           value = "2"                     />
-  <param name = "moving_time"             type = "int"           value = "5"                     />
   <param name = "battery_time"            type = "int"           value = "200"                   />
   <param name = "charging_location"       type = "str"           value = "E"                     />
   
