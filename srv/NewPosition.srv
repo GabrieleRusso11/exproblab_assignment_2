@@ -1,0 +1,11 @@
+####### The service to set the current robot position
+
+### Request
+
+# The new robot position to be stored.
+
+Location position
+
+---
+
+### Response

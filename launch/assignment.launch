@@ -1,0 +1,122 @@
+<?xml version="1.0"?>
+<launch>
+	
+	  <!-- these are the arguments you can pass this launch file, for example paused:=true -->
+  <arg name="paused" default="false"/>
+  <arg name="use_sim_time" default="true"/>
+  <arg name="extra_gazebo_args" default=""/>
+  <arg name="gui" default="true"/>
+  <arg name="recording" default="false"/>
+  <arg name="world" default="assignment_world" />
+  <!-- Note that 'headless' is currently non-functional.  See gazebo_ros_pkgs issue #491 (-r arg does not disable
+       rendering, but instead enables recording). The arg definition has been left here to prevent breaking downstream
+       launch files, but it does nothing. -->
+  <arg name="headless" default="false"/>
+  <arg name="debug" default="false"/>
+  <arg name="physics" default="ode"/>
+  <arg name="verbose" default="false"/>
+  <arg name="world_name" value="$(find exproblab_assignment_2)/worlds/$(arg world).world"/>
+  <arg name="respawn_gazebo" default="false"/>
+  <arg name="use_clock_frequency" default="false"/>
+  <arg name="pub_clock_frequency" default="100"/>
+
+  <arg name="model" default="$(find exproblab_assignment_2)/robot_urdf/urdf/robot_model.xacro" />
+
+  <!-- set use_sim_time flag -->
+  <param name="/use_sim_time" value="$(arg use_sim_time)"/>
+
+  <!-- set command arguments -->
+  <arg unless="$(arg paused)" name="command_arg1" value=""/>
+  <arg     if="$(arg paused)" name="command_arg1" value="-u"/>
+  <arg unless="$(arg recording)" name="command_arg2" value=""/>
+  <arg     if="$(arg recording)" name="command_arg2" value="-r"/>
+  <arg unless="$(arg verbose)" name="command_arg3" value=""/>
+  <arg     if="$(arg verbose)" name="command_arg3" value="--verbose"/>
+  <arg unless="$(arg debug)" name="script_type" value="gzserver"/>
+  <arg     if="$(arg debug)" name="script_type" value="debug"/>
+
+  <!-- start gazebo server-->
+  <group if="$(arg use_clock_frequency)">
+    <param name="gazebo/pub_clock_frequency" value="$(arg pub_clock_frequency)" />
+  </group>
+  <node name="gazebo" pkg="gazebo_ros" type="$(arg script_type)" respawn="$(arg respawn_gazebo)" output="screen"
+	args="$(arg command_arg1) $(arg command_arg2) $(arg command_arg3) -e $(arg physics) $(arg extra_gazebo_args) $(arg world_name)" />
+	
+  <!-- start gazebo client -->
+  <group if="$(arg gui)">
+    <node name="gazebo_gui" pkg="gazebo_ros" type="gzclient" respawn="false" output="screen"/>
+  </group>
+
+  <!-- Save robot .xacro to param server -->
+  <param name="robot_description" 
+	 command="$(find xacro)/xacro --inorder $(arg model)" />
+
+  <!-- Start Rviz -->
+  <param name="use_gui" value="True"/>
+  <node name="joint_state_publisher_gui" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui"> </node>
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"> </node>
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find exproblab_assignment_2)/config/robot_config.rviz" />
+
+  <!-- Service call to gazebo_ros to spawn robot -->
+  <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model"
+    respawn="false" output="screen"
+    args="-urdf -model robot_model -param robot_description -x -6.0 -y 11.0 -z 1 -Y 3.14"/>
+
+  <!-- Start the joint controllers -->
+  <include file="$(find exproblab_assignment_2)/launch/motor_control.launch"/>
+
+  <node name="marker_publisher" pkg="aruco_ros" type= "marker_publisher" output="log" >
+    <remap from="/image" to="/robot/camera1/image_raw"/> 
+  </node>
+
+  <node name="marker_server" pkg="exproblab_assignment_2" type="marker_server" />
+
+  <include file="$(find exproblab_assignment_2)/launch/gmapping.launch"/>
+
+  <include file="$(find exproblab_assignment_2)/launch/move_base.launch"/>
+
+
+  <node pkg="armor" type="execute" name="armor_service" args="it.emarolab.armor.ARMORMainService"/>
+
+  <param name = "starting_map"            type = "str"           value = "/topological_map.owl"  />
+  <param name = "operative_map"           type = "str"           value = "test1.owl"             />
+  
+  <param name = "charging station"        type = "str"           value = "E"                     />
+  <param name = "location_property"       type = "str"           value = "hasDoor"               />
+  <param name = "robot_property"          type = "str"           value = "isIn"                  />
+  <param name = "urgent_property"         type = "str"           value = "urgencyThreshold"      />
+  <param name = "visited_property"        type = "str"           value = "visitedAt"             />
+  <param name = "canreach_property"       type = "str"           value = "canReach"              />
+  <param name = "now_property"            type = "str"           value = "now"                   />
+  <param name = "coord_x_property"        type = "str"           value = "Coordinate_X"          />
+  <param name = "coord_y_property"        type = "str"           value = "Coordinate_Y"          />
+
+  <param name = "robot_name"              type = "str"           value = "Robot1"                />
+  <param name = "waiting_time"            type = "int"           value = "10"                    />
+  <param name = "planning_time"           type = "int"           value = "2"                     />
+  <param name = "moving_time"             type = "int"           value = "5"                     />
+  <param name = "battery_time"            type = "int"           value = "200"                   />
+  <param name = "charging_location"       type = "str"           value = "E"                     />
+  
+  <node pkg = "exproblab_assignment_2"  
+  type = "state_machine.py"
+  name = "state_machine"
+  output = "screen"
+  launch-prefix="gnome-terminal --title=State_Machine -e"
+  > </node>
+
+  <node pkg = "exproblab_assignment_2"  
+  type = "robot_state.py"
+  name = "robot_state"
+  output = "screen"
+  launch-prefix="gnome-terminal --title=Robot_State -e"
+  > </node>
+
+  <node pkg = "exproblab_assignment_2"  
+  type = "controller.py"
+  name = "Controller"
+  output = "screen"
+  launch-prefix="gnome-terminal --title=Controller -e"
+  > </node>
+
+</launch>
