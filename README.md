@@ -1,5 +1,6 @@
 # Experimental Robotics Laboratory assignment 
-This is the second assignment of the university course Experimental robotics laboratory, developed by the student [Gabriele Russo](https://github.com/GabrieleRusso11)
+This is the second assignment of the university course Experimental robotics laboratory, developed by the student [Gabriele Russo](https://github.com/GabrieleRusso11).
+The full code documentation is here https://gabrielerusso11.github.io/exproblab_assignment_2/
 
 # Introduction
 The aim of this assignment is to simulate a surveillance robot in an indoor environment (the pictures below). The robot starts in the E corridor and then it will go to visit the other locations, giving the priority to the urgent locations and to the corridors. The urgent locations are location that the robot hasn't visited for some time. Once it is in a location, it has to scan the location rotating a camera. During this process if the robot gets a low battery level, it has to go in the corridor E which is the charging location.
