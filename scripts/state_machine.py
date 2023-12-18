@@ -537,8 +537,7 @@ class Scan(State):
         goes back to the Planning state.
         If the battery is low, the state machine goes in the Recharging state
         """
-        # get the waiting time from the ros parameter server
-        waiting_time = rospy.get_param("/waiting_time")
+
 
         # Wait for stimulus from the other nodes of the architecture.
         while not rospy.is_shutdown():  
