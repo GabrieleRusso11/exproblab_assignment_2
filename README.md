@@ -1,10 +1,12 @@
 # Experimental Robotics Laboratory assignment 
-This is the first assignment of the university course Experimental robotics laboratory, developed by the student Gabriele Russo
+This is the second assignment of the university course Experimental robotics laboratory, developed by the student [Gabriele Russo](https://github.com/GabrieleRusso11)
 
 # Introduction
-The aim of this assignment is to simulate a surveillance robot in an indoor environment (the pictures below). The robot starts in the E corridor and then it will go to visit the other locations, giving the priority to the urgent locations and to the corridors. The urgent locations are location that the robot hasn't visited for some time. Once it is in a location, it has to wait some time in order to simulate that it is doing something. During this process if the robot gets a low battery level, it has to go in the corridor E which is the charging location.
+The aim of this assignment is to simulate a surveillance robot in an indoor environment (the pictures below). The robot starts in the E corridor and then it will go to visit the other locations, giving the priority to the urgent locations and to the corridors. The urgent locations are location that the robot hasn't visited for some time. Once it is in a location, it has to scan the location rotating a camera. During this process if the robot gets a low battery level, it has to go in the corridor E which is the charging location.
 
 In order to do this, the indoor environment is associated to an ontology implemented using the [Armor system](https://github.com/EmaroLab/armor) and the robot behaviour is defined using a Final State Machine which is implemented through [ROS SMACH](http://wiki.ros.org/smach).
+
+Unlike the [assignment 1](https://github.com/GabrieleRusso11/exproblab_assignment1_russo_gabriele) now the environment is simulated using Gazebo, and in order to know the environment informations (like the name of the locations and the coordinates) the robot has to scan with a camera, the markers which sorround it in its initial position (x = -6.0, y = 11.0). The marker are detected using [aruco_ros](https://github.com/CarmineD8/aruco_ros)
 
 The code of this assignment has been developed using as landmark the [arch_skeleton](https://github.com/buoncubi/arch_skeleton) by [Professor Luca Buoncomapgni](https://github.com/buoncubi).
 
@@ -15,8 +17,11 @@ This software architecture is composed of four python scripts:
 
 - `state_machine.py`
 - `robot_state.py`
-- `planner.py`
 - `controller.py`
+
+ and one c++ script:
+
+- `marker_server.cpp`
 
 Then there are other two python scripts:
 
@@ -34,9 +39,9 @@ In order to explain in efficient way the software architecture, in the following
 
 ## Component diagram
 
-![Component diagram](https://github.com/GabrieleRusso11/exproblab_assignment1_russo_gabriele/blob/main/media/assignment1_component_diagram.png)
+![Component diagram](https://github.com/GabrieleRusso11/exproblab_assignment_2/blob/main/media/assignment2_component_diagram.png)
 
-The architecture is composed of 5 components:
+The architecture is composed of 9 components:
 
 - **Armor server**: this component is the interface between the state machine node and the ontology associated to the indoor environment.
 It is implemented by the [Armor system](https://github.com/EmaroLab/armor).
@@ -47,41 +52,42 @@ It is implemented using the [ROS SMACH](http://wiki.ros.org/smach), and has an i
 
 - **Robot State**: this component contains the state of the robot, so its actual position and its battery level.
 
-- **Planner**: this component is an action server that takes the actual robot position by the Robot State component and the target position by the State Machine component and returns, to the State Machine, the plan that the robot has to follow in order to reach the target location.
+- **Controller**: this component is an action server that takes the target location by the state machine and send a [move base](http://wiki.ros.org/move_base) goal in order to move the robot towards the target location, avoiding walls and obstacles. Then it sends the new location reached to the State Machine and Robot State components.
 
-- **Controller**: this component is anc action server that takes the plan by the state machine and simulate the robot motion. Then it sends the new location reached to the State Machine and Robot State components.
+- **Aruco_ros**: this component use the [aruco_ros](https://github.com/CarmineD8/aruco_ros) package in order to detect the marker and sends the marker id detected to the state machine component.
 
+- **Marker_server**: this component is developed by the [Professor Carmine Recchiuto](https://github.com/CarmineD8). It receives by the state machine component, the marker id detected and returns the location informations associated to the specific marker id (location name, x and y coordinates).
 
+- **Move_base**: this component is the [move base](http://wiki.ros.org/move_base) package, used to move the robot in the simulated environment. It receives the goal from the controller component and return the goal status (succeed if the robot has reached the target location). State machine components sends a cancel goal request when the robot is moving and it gets a low battery level.
+
+- **Slam Gmapping**: this component is the [slam gmapping](http://wiki.ros.org/gmapping) package in order to build the map using the hokuyo laser scan (gazebo plugin)
+
+- **Gazebo**: this component is the [gazebo](https://gazebosim.org/home) robot simulator, used to simulate the robot (for example camera, hokuyo laser, manipulator, joint position controller) and also the indoor environment.
 
 ## State diagram
 
-![State diagram](https://github.com/GabrieleRusso11/exproblab_assignment1_russo_gabriele/blob/main/media/state_diagram_1.png)
+![State diagram](https://github.com/GabrieleRusso11/exproblab_assignment_2/blob/main/media/state_diagram_2.png)
 
 The State machine componet is described by this state diagram.
 The state machine is composed by 5 states:
 
-- **WaitForTopMap**: in this state the robot waits that the user has built and loaded the ontology through the armor server. So, in a nutshell waits that the map of the indoor environment is ready.
+- **WaitForTopMap**: in this state the robot waits that the camera has scanned and processed al the markers, then build (with the informations acquired by the markers) and load the ontology through the armor server. So, in a nutshell waits that the ontology of the indoor environment is ready.
 
-- **Planning**: once the map is ready, the robot passes to the planning state. In this state the robot plans in which location has to go, obtaining the plan thanks to the planner node.
+- **Planning**: once the ontology is ready, the robot passes to the planning state. In this state the robot plans in which location has to go.
 
-- **Moving**: in this state is simulated the motion of the robot towards the target location, using the controller node.
+- **Moving**: in this state the robot is moved towards the target location, using the controller node, exploiting the move_base package.
 
-- **Wait**: when the robot has reached the target location it waits some times. So in this state is simulated through a busy waiting, that the robot is doind something in the reached location.
+- **Scan**: when the robot has reached the target location it rotates the manipulator on itself, where is attached the camera, in order to scan the location reached.
 
 - **Recharging**: in this state the robot has a low battery level, so starts to reach the charging location. When it is in the charging location it starts the charging process.
 
-
 ## Temporal diagram
 
-![temporal diagram](https://github.com/GabrieleRusso11/exproblab_assignment1_russo_gabriele/blob/main/media/temporal_diagram_1.png)
-
-This diagram explain the temporal workflow of the architecture.
-Firstly, the state machine allows to the user to create the map and load it in the Armor server.
-Secondly, the state machine sends the initial position to the robot state node.
-Thirdly, the planner node receives the current robot position by the robot state node and the target location by the state machine nodes and returns the plan to the state machine node.
-Then, the state machine (in the moving state) sends the plan to the controller node, which simulates the motion sending the reached locations to the robot state node and then the final location to the state machine node.
-Lastly the state machine node, through the armor server, update the ontology with the new robot position and with the new robot and location timestamps.
-For simplicity the charging process is not shown in the temporal diagram. Obviously, the robot state sends every time the battery level to the state machine. When the battery has a low level the state machine checks if the robot is already in the charging location, if not it search the charging location using the same mechanism with the planner and controller nodes, already shown in the picture above. 
+The temporal diagram for this second assignment is quite similar to the [first assignment](https://github.com/GabrieleRusso11/exproblab_assignment1_russo_gabriele) but in this case the ontology is not defined by the user but is defined detecting the markers id.
+So in this case the first step is use aruco_ros to detect the markers id, that will be sent to the state machine. Then the state machine will send this markers id to the marker_server in order to takes the location informations.
+Then the state machine can build the ontology as the first assignment (in this case there is an additional property, the x and y coordinates of the location).
+Al the other things are the same, but know there is not anymore the planner node, because the planning process is done by slam gmapping and move_base packages.
+Another new think is the comunication between the state machine and Gazebo. The state machine will send the joint position commands to gazebo in order to control the robot manipulator, where is attached the camera.
 
 ## list of ros parameters
 
@@ -102,13 +108,11 @@ For simplicity the charging process is not shown in the temporal diagram. Obviou
 
 - `now_property`: the name of the property that updates the robot timestamp
 
+- `coord_x_property`: the name of the property that set and get the x coordinate of the location
+
+- `coord_y_property`: the name of the property that set and get the y coordinate of the location
+
 - `robot_name`: the name of the robot
-
-- `waiting_time`: the time used for the busy wainting in the wait state
-
-- `planning_time`: the time used to simulate the planning computational time
-
-- `moving_time`: the time used to simulate the robot motion
 
 - `battery_time`: the time used to define the charging and discharging time of the battery
 
@@ -123,37 +127,68 @@ To install Ros Smach for the final state machine :
 
 `sudo apt-get install ros-noetic-executive-smach*`
 
+Then clone this repositories:
+- aruco_ros:
+
+`git clone https://github.com/CarmineD8/aruco_ros`
+
+- slam_gmapping:
+
+`git clone https://github.com/CarmineD8/SLAM_packages.git`
+
+- move_base:
+
+`git clone https://github.com/CarmineD8/planning`
+
+in order to properly load the markers in the robotic simulation later, copy the folder `models` of the aruco_ros package in the hidden folder `/root/.gazebo/models`
+
+to control the robot in the gazebo simulation environment is needed th **ros_control** packages.
+So open the terminal and execute the following lines:
+
+`
+sudo apt-get install ros-[ROS_version]-ros-control ros-[ROS_version]-ros-controllers
+`
+
+`
+sudo apt-get install ros-[ROS_version]-gazebo-ros-pkgs ros-[ROS_version]-gazebo-ros-control
+`
+
 Then in the workspace src folder clone this repository : 
 
-`git clone https://github.com/GabrieleRusso11/exproblab_assignment1_russo_gabriele.git`
+`git clone https://github.com/GabrieleRusso11/exproblab_assignment_2.git`
 
-and the repository with the starting ontology:
+Then go in the exproblab_assignment_2 folder and clone this repository for the ontology:
 
 `git clone https://github.com/buoncubi/topological_map`
 
+Lastly run:
+
+`catkin_make`
+
 In order to run this project, go in the workspace and launch the launch file:
 
-`roslaunch exproblab_assignment1_russo_gabriele assignment1.launch`
+`roslaunch exproblab_assignment_2 assignment.launch`
 
 # Video Demo.
 
 # Working hypothesis and environment 
 For this project are considerated different assumptions.
-Firstly, the environment is considered as a 2D map, so the robot doesn't interact with a real simulation environment.
+Firstly, the robot is spawned in the gazebo simulation environment in a room with 7 markers.
+The robot has to use a manipulator with a camera, in order to scan and detect all the marker id, also the markers that are on the walls. In this case only the camera has to rotate, not the robot
 Then, the robot starts from the E corridor which is both the charging location and a normal location to be visited.
 Then, there is a priority in the choice of the location to visit. Robot has to visit before the corridors and then the rooms.
 If there are no corridors between the urgent locations to visit, then the robot will give higher priority to the urgent room, otherwise the corridors have always the higher priority.
 In this way, since the corridors are connected to more locations (a corridors has to have at least 2 doors) than the rooms, the robot can reach more location and can reach quickly the charging location when the battery is low.
 The battery level low is considered has a minimum battery level threshold after that the robot has to charge is battery as soon as possible. 
-When the battery level is low, if the robot is already in the charging location, the charging process starts immediatly, otherwise the robot is in the low battery level mode and the planner and the controller will be used only to find and reach the charging location.
-So when the robot is in the rescharging state, it can go in the plannig state both if the battery is charged and also if the robot has to reach the charging location (low battery mode)
+When the battery level is low, if the robot is already in the charging location, the charging process starts immediatly, otherwise the robot is in the low battery level mode and the move_base and the controller will be used only to find and reach the charging location.
+So when the robot is in the rescharging state, it can go in the planning state both if the battery is charged and also if the robot has to reach the charging location (low battery mode)
 
  
 ## System’s features
 
 In the following are listed the system's features:
 
-- Colored User Interface in order to allow the users to define and create the indoor environment as they prefer.
+- Colored User Interface in order to allow the users to modify some ontology parameters and to see all the outputs of the nodes.
 
 - High priority to battery_low signals in order to recharge the robot's battery as soon as possible
 
@@ -163,16 +198,19 @@ In the following are listed the system's features:
 
 - robot_state node that keeps track of the robot state (position and battery level)
 
-- SImple algorithms for planning and controlling the robot (simulating the necessary time for performing the corresponding operations)
+- Slam_gmapping and move_base for plan and move the robot towards the goal location avoiding the walls and the obstacles
 
 - Log informations for each node with different colors
 
+- 3D simulation environment using Gazebo
+
+- 3D robot model (robot_model.xacro and robot_model.gazebo) with a camera and hokuyo laser scan gazebo plugins, four wheels, skid_steer_drive controller, and a manipulator with a revolute base joint and a prismatic joint on the link 1 in order to move up and down the camera on it.
+
 ## System’s limitations and Possible technical Improvements
 
-- **Environment**: in this assignment there is an ideal environment, so there aren't walls and obstacle.
-So a first possible improvement is to build a more realistic simulated environment for instance with walls and obstacle, in order to test the behaviour of the code and of the robot in a more proper way.
+- **Manipulator movements**: the movement of the robot manipulator are not smooth, especially when there is the rotation of the joint base. A possible improvement is to modify parameters in the robot_model.xacro and choosing better tuning parameters for the joint position controllers.
 
-- **Planner and Controller**: the planner and the controller node are very simple and they do nothing of practical. The planner simply creates a plan composed by the initial position, a generic intermediate position and the target position. The controller simply takes the plan and update the robot position until it reaches the final location. So both nodes simulates a planner and controller nodes. A possible improvement is to develop a more realistic and efficient planner and controller algorithms, for instance to evaluate a reasonable path towards the target location (avoiding obstacles and walls) and to control the actuator of the robot in order to follow the generated path.
+- **Robot motion**: the robot moves very slowly. A possible improvement is to modify some move_base parameters in order to make the robot faster and more agile.
 
 - **Battery management**: Actually the battery level is only a boolean variable that passes from True to false (and viceversa) in order to simulate the change of the battery level. The charging and discharging of the battery are a simple busy waiting times.
 So a first improvement is to output the charging and the discharging of the battery in order to show to the users the increasing or decreasing of the battery. Lastly, the battery management can be improved with a more realistic and proper algorithm, in order to make the battery usage more realistic.
