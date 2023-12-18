@@ -161,6 +161,8 @@ Then go in the exproblab_assignment_2 folder and clone this repository for the o
 
 `git clone https://github.com/buoncubi/topological_map`
 
+Substitute the `aruco_ros/src/marker_publish.cpp` with the `marker_publish.cpp` of this repository.
+
 Lastly run:
 
 `catkin_make`
