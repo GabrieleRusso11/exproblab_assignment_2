@@ -1,0 +1,18 @@
+###### The motion controlling interface
+
+### Action Service Goal
+
+# The plan as a list of locations to reach.
+
+Location target_location
+
+---
+
+### Action Server Result
+
+# The reached location when the plan has been followed.
+
+Location final_location
+
+---
+
