@@ -169,7 +169,11 @@ In order to run this project, go in the workspace and launch the launch file:
 
 `roslaunch exproblab_assignment_2 assignment.launch`
 
-# Video Demo.
+# Video Demo
+
+
+
+The video has a velocity x1.5.
 
 # Working hypothesis and environment 
 For this project are considerated different assumptions.
@@ -218,7 +222,7 @@ So a first improvement is to output the charging and the discharging of the batt
 - **Urgent Locations management**: the urgent location to visit is chosen randomly between the locations in the urgent location list (if there are corridors, the priority is given to them), this means that there is not an order based on the time (for example first urgent location to visit is the location that the robot has not visited in the longest time). So a possible improvement is to handle the urgent location list giving higher priority based on the less recent visited time.
 
 
-# Authors and contacts (at least the email).
+# Authors and contacts
 
 **Institution**: University of Genoa
 
