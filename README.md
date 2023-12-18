@@ -171,7 +171,7 @@ In order to run this project, go in the workspace and launch the launch file:
 
 # Video Demo
 
-
+https://github.com/GabrieleRusso11/exproblab_assignment_2/assets/93495918/58c60e15-1564-401e-9fff-0d341a6f9e92
 
 The video has a velocity x1.5.
 
