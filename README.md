@@ -1,5 +1,6 @@
 # Experimental Robotics Laboratory assignment 
 This is the second assignment of the university course Experimental robotics laboratory, developed by the student [Gabriele Russo](https://github.com/GabrieleRusso11).
+
 The full code documentation is here https://gabrielerusso11.github.io/exproblab_assignment_2/
 
 # Introduction
