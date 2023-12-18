@@ -60,7 +60,7 @@
   <!-- Service call to gazebo_ros to spawn robot -->
   <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model"
     respawn="false" output="screen"
-    args="-urdf -model robot_model -param robot_description -x -6.0 -y 11.0 -z 1 -Y 3.14"/>
+    args="-urdf -model robot_model -param robot_description -x -6.0 -y 11.0 -z 1 -Y 0.0"/>
 
   <!-- Start the joint controllers -->
   <include file="$(find exproblab_assignment_2)/launch/motor_control.launch"/>
