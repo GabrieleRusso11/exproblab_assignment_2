@@ -922,9 +922,6 @@ class Handler:
 
         if goal == [] :
 
-            print()
-            print(Fore.LIGHTYELLOW_EX + "NO ",Fore.LIGHTRED_EX + "corridor",Fore.LIGHTYELLOW_EX + " is reachable")
-
             goal.append(random.choice(can_reach))
 
     def target_location(self):
@@ -991,11 +988,15 @@ class Handler:
                 # The target location is a random choice between the urgent locations
                 plan = random.choice(goal_loc)
 
+                print(Fore.LIGHTYELLOW_EX + "The ",Fore.LIGHTRED_EX + "location goal",Fore.LIGHTYELLOW_EX + " is : ")
+                print(plan)
+
             else : # if no urgent location is reachable, then go in a corridor
 
                 print(Fore.LIGHTYELLOW_EX + "No ",Fore.LIGHTCYAN_EX + "urgent location", Fore.LIGHTYELLOW_EX + "reachable")
                 print()
                 print(Fore.LIGHTYELLOW_EX + "Go in a ",Fore.LIGHTRED_EX + "reachable corridor ")
+                print()
 
                 self.go_in_a_corridor(corridors,reachable_loc,goal_loc)
 
@@ -1016,6 +1017,8 @@ class Handler:
             print(Fore.LIGHTYELLOW_EX + "The ",Fore.LIGHTRED_EX + "location goal",Fore.LIGHTYELLOW_EX + " is : ",Fore.WHITE)
 
             plan = random.choice(goal_loc)
+
+            print(plan)
         
         return plan
     
@@ -1087,16 +1090,24 @@ class Handler:
             if len(reachable_corridors) == 0:
 
                 print(Fore.LIGHTYELLOW_EX + "Go in a random reachable location", Fore.WHITE)
+                print()
 
                 target = random.choice(reachable_loc)
+
+                print(Fore.LIGHTYELLOW_EX + "The ",Fore.LIGHTRED_EX + "location goal",Fore.LIGHTYELLOW_EX + " is : ")
+                print(target)
 
                 return target
             
             else:
 
                 print(Fore.LIGHTYELLOW_EX + "Go in a corridor", Fore.WHITE)
+                print()
 
                 target= random.choice(reachable_corridors)
+
+                print(Fore.LIGHTYELLOW_EX + "The ",Fore.LIGHTRED_EX + "location goal",Fore.LIGHTYELLOW_EX + " is : ")
+                print(target)
 
                 return target
 
